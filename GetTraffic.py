@@ -1,10 +1,8 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time
-import IC
 import FileRW
 import IC
-from operator import eq
 
 NodeOnclick = FileRW.NodeFIle()
 Nodes = []
@@ -20,7 +18,7 @@ IcFile.close()
 print('IC 개수:', len(Nodes))  # 읽은 IC의 개수 출력
 
 GoalUrl = 'http://www.roadplus.co.kr/forecast/stagnation/selectStagnationView.do#none'  # 목표 URL
-driver = webdriver.Chrome('C:\chromedriver.exe')
+driver = webdriver.Chrome('chromedriver.exe')
 
 ResultFile = FileRW.Result('Result.csv')
 
