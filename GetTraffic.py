@@ -1,8 +1,9 @@
 from selenium import webdriver
-from selenium.webdriver.common.alert import Alert
+from selenium.webdriver.common.keys import Keys
 import time
 import IC
 import FileRW
+import IC
 from operator import eq
 
 NodeOnclick = FileRW.NodeFIle()
@@ -21,15 +22,17 @@ print('IC 개수:', len(Nodes))  # 읽은 IC의 개수 출력
 GoalUrl = 'http://www.roadplus.co.kr/forecast/stagnation/selectStagnationView.do#none'  # 목표 URL
 driver = webdriver.Chrome('C:\chromedriver.exe')
 
+ResultFile = FileRW.Result('Result.csv')
 
-def GetResult():  # 검색 버튼을 누르고 출력
-    SearchBtn.click()  # 검색 오래걸린다...
-    print('검색버튼 클릭')
-    time.sleep(7)  # 10초의 기다림
+
+def GetResult(StartIC, EndIC, Date, CurentTime):  # 검색 버튼을 누르고 출력
+    SearchBtn.send_keys(Keys.ENTER)  # 검색 오래걸린다...
+    time.sleep(5)  # 10초의 기다림
     ResultHour = driver.find_element_by_id('tgHour')
     ResultMin = driver.find_element_by_id('tgMin')
-    print(ResultHour.text)
-    print(ResultMin.text)
+    print("시간대: " + CurrentTime)
+    print(ResultHour.text + "시간 " + ResultMin.text + "분")
+    ResultFile.Write(StartIC, EndIC, Date, CurrentTime, ResultHour.text + " : " + ResultMin.text)
 
 
 driver.implicitly_wait(3)  # 드라이버 로드를 위해 기다림
@@ -47,7 +50,7 @@ SearchBtn = driver.find_element_by_id('tgBtnSearch')  # 검색 버튼
 ResultTime = driver.find_element_by_id('tgStime')  # 검색 시간
 DatePicker = driver.find_element_by_id('datepicker2')  # 날짜 선택
 
-for i in range(len(Nodes)):
+for i in range(len(Nodes)):  # 노드 개수만큼
     InputStart.clear()
     InputEnd.clear()
 
@@ -64,18 +67,26 @@ for i in range(len(Nodes)):
     endOnclick = NodeOnclick.getEndOnClick(Nodes[i].getEndNode())
     driver.execute_script(endOnclick)  # 도착 입력 스크립트 실행
 
-    dates = driver.find_elements_by_xpath("//td[@*]/a[@href='#']")  # 날짜 입력 클릭 가능
-    print(len(dates))
-    for dateIndex in range(6):  # 7일 동안
-        DatePicker.click()  # 날짜 선택
-        date = dates[dateIndex + 1].click()  # 날짜 진짜 선택
-        CurrentTime = ResultTime.get_attribute('value')  # 현재 선택되어 있는 시간
-        
-        while CurrentTime != '00 : 00': # 이전 시간으로 변경
-            PrevBtn.click()
-            CurrentTime = ResultTime.get_attribute('value')  # 선택 시간 업데이트
+    for index in range(7):  # 7일 동안
+        DatePicker.send_keys(Keys.ENTER)  # 날짜 선택 클릭
 
-        while CurrentTime != '23 : 00':  # 이후 시간으로 변경
-            NextBtn.click()
-            GetResult() # 결과 반환
+        date = driver.find_elements_by_xpath(
+            "//table[@class='ui-datepicker-calendar']/tbody/tr/td[@data-handler='selectDay']/a")[index + 1]
+        date.send_keys(Keys.ENTER)
+        CurrentDate = driver.find_element_by_id('datepicker2').get_attribute('value')
+        print("날짜 클릭함")
+        CurrentTime = ResultTime.get_attribute('value')  # 현재 선택되어 있는 시간
+
+        while CurrentTime != '01 : 00':  # 이전 시간으로 변경
             CurrentTime = ResultTime.get_attribute('value')  # 선택 시간 업데이트
+            PrevBtn.click()
+            time.sleep(0.2)
+
+        isFirst = True
+        while CurrentTime != '23 : 00':  # 이후 시간으로 변경
+            if not isFirst:
+                NextBtn.send_keys(Keys.ENTER)
+            if isFirst:
+                isFirst = False
+            CurrentTime = ResultTime.get_attribute('value')  # 선택 시간 업데이트
+            GetResult(Nodes[i].getStartNode(), Nodes[i].getEndNode(), CurrentDate, CurrentTime)  # 결과 반환

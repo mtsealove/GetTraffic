@@ -44,3 +44,21 @@ class NodeFIle(object):
         for node in self.EndNodes:
             if node.getNodeName() == NodeName:
                 return node.getOnClick()
+
+
+class Result(object):
+
+    def __init__(self, FileName):  # 파일 생성 및 기본 정보 설정
+        self.FileName=FileName
+        self.ResultFile = open(FileName, 'w')
+        self.ResultFile.write('시작 IC,도착 IC,날짜,시간대,예상 시간\n')
+        self.ResultFile.close()
+
+    def Write(self, StartIC, EndIC, Date, StdTime, PredictionTime):
+        self.ResultFile=open(self.FileName, 'a')
+        self.ResultFile.write(StartIC+",")
+        self.ResultFile.write(EndIC+",")
+        self.ResultFile.write(Date+",")
+        self.ResultFile.write(StdTime+",")
+        self.ResultFile.write(PredictionTime+"\n")
+        self.ResultFile.close()
